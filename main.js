@@ -36,6 +36,7 @@ function createWindow() {
     fullscreen: true,
     hasShadow: false,
     skipTaskbar: true,
+    focusable: false,
     resizable: false,
     webPreferences: {
       contextIsolation: true,
