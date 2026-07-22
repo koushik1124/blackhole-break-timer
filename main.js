@@ -55,6 +55,7 @@ function createWindow() {
   mainWindow.showInactive();
   mainWindow.setBounds(primaryDisplay.bounds);
   mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+  mainWindow.setContentProtection(true);
 
   mainWindow.webContents.once('did-finish-load', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -69,11 +70,11 @@ function createWindow() {
 }
 
 function startCaptureInterval() {
-  // 💡 Periodically recapture the desktop every 10 seconds to keep lensing dynamic
+  // 💡 Periodically recapture the desktop every 5 seconds seamlessly
   setInterval(() => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     captureDesktop();
-  }, 10000);
+  }, 5000);
 }
 
 function startIdleMonitor() {
@@ -129,27 +130,16 @@ async function captureDesktop() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.bounds;
 
-    // 💡 Briefly hide overlay so we capture actual desktop content underneath
-    mainWindow.setOpacity(0);
-    await new Promise((resolve) => setTimeout(resolve, 60));
-
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
       thumbnailSize: { width: Math.min(width, 1920), height: Math.min(height, 1080) }
     });
-
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setOpacity(1);
-    }
 
     if (sources && sources.length > 0 && mainWindow && !mainWindow.isDestroyed()) {
       const dataUrl = sources[0].thumbnail.toDataURL();
       mainWindow.webContents.send('screen-captured', dataUrl);
     }
   } catch (err) {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setOpacity(1);
-    }
     console.error('[MAIN] Capture error:', err);
   } finally {
     isCapturing = false;
