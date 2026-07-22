@@ -349,6 +349,9 @@ if (window.bhApi && window.bhApi.onScreenCaptured) {
     textureLoader.load(dataUrl, (texture) => {
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
+      if (quadMat.uniforms.uScreenTexture.value && quadMat.uniforms.uScreenTexture.value.dispose) {
+        quadMat.uniforms.uScreenTexture.value.dispose();
+      }
       quadMat.uniforms.uScreenTexture.value = texture;
       quadMat.uniforms.uHasScreenTexture.value = 1.0;
     });
@@ -441,13 +444,17 @@ function fmtTime(sec) {
   return `${m}m ${s.toString().padStart(2, '0')}s`;
 }
 
-function scalePct(s) { return (s / 1.5 * 100).toFixed(1); }
+function scalePct(s) {
+  const num = typeof s === 'number' && !isNaN(s) ? s : 0;
+  return (num / 1.5 * 100).toFixed(1);
+}
 
 function buildHudHTML(d) {
-  const pct = scalePct(d.scale);
+  const safeData = d || { scale: 0, idleSec: 0, workSec: 0, debug: false };
+  const pct = scalePct(safeData.scale);
   const bar = buildBar(pct);
-  const mode = d.debug ? '🚧 DEBUG' : '🟢 LIVE';
-  const block = d.scale >= 1.2 ? ' — <span style="color:#ff5555">🚫 MOUSE BLOCKED</span>' : '';
+  const mode = safeData.debug ? '🚧 DEBUG' : '🟢 LIVE';
+  const block = safeData.scale >= 1.2 ? ' — <span style="color:#ff5555">🚫 MOUSE BLOCKED</span>' : '';
   const pos = `(${currentCenter.x.toFixed(3)}, ${currentCenter.y.toFixed(3)})`;
   const drift = (currentDriftSpeed * 100).toFixed(1);
   return [
@@ -455,16 +462,17 @@ function buildHudHTML(d) {
     `<span style="color:#6ee7b7">${mode}</span>${block}`,
     `Scale: <b style="color:#fbbf24">${pct}%</b>  ${bar}`,
     `Pos  : <b style="color:#93c5fd">${pos}</b>  Drift: ${drift}`,
-    `Idle : <b>${fmtTime(d.idleSec || 0)}</b> / 3m00s`,
-    `Work : <b>${fmtTime(d.workSec || 0)}</b> / 40m00s`,
+    `Idle : <b>${fmtTime(safeData.idleSec || 0)}</b> / 3m00s`,
+    `Work : <b>${fmtTime(safeData.workSec || 0)}</b> / 40m00s`,
     `<span style="color:#6b7280;font-size:10px">Ctrl+Shift+0–4 test │ Or right-click System Tray</span>`,
   ].join('<br>');
 }
 
 function buildBar(pct) {
-  const filled = Math.round(pct / 5);
+  const num = parseFloat(pct) || 0;
+  const filled = Math.max(0, Math.min(20, Math.round(num / 5)));
   const empty = 20 - filled;
-  const color = pct >= 80 ? '#ff5555' : pct >= 50 ? '#fbbf24' : '#34d399';
+  const color = num >= 80 ? '#ff5555' : num >= 50 ? '#fbbf24' : '#34d399';
   return `<span style="color:${color}">${'█'.repeat(filled)}${'░'.repeat(empty)}</span>`;
 }
 
