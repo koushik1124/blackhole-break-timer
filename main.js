@@ -41,6 +41,7 @@ function createWindow() {
     skipTaskbar: true,
     focusable: false,
     resizable: false,
+    type: 'screen-saver',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -48,13 +49,18 @@ function createWindow() {
     },
   });
 
-  mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setMenu(null);
   mainWindow.loadFile('index.html');
   mainWindow.setIgnoreMouseEvents(true);
   mainWindow.showInactive();
+  mainWindow.setBounds(primaryDisplay.bounds);
+  mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
 
   mainWindow.webContents.once('did-finish-load', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setBounds(screen.getPrimaryDisplay().bounds);
+      mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    }
     captureDesktop();
   });
 
