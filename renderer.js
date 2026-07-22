@@ -342,19 +342,20 @@ const quadMat = new THREE.ShaderMaterial({
 });
 scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), quadMat));
 
-const textureLoader = new THREE.TextureLoader();
+const desktopImg = new Image();
+const screenTex = new THREE.Texture(desktopImg);
+screenTex.minFilter = THREE.LinearFilter;
+screenTex.magFilter = THREE.LinearFilter;
+
+desktopImg.onload = () => {
+  screenTex.needsUpdate = true;
+  quadMat.uniforms.uScreenTexture.value = screenTex;
+  quadMat.uniforms.uHasScreenTexture.value = 1.0;
+};
 
 if (window.bhApi && window.bhApi.onScreenCaptured) {
   window.bhApi.onScreenCaptured((dataUrl) => {
-    textureLoader.load(dataUrl, (texture) => {
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      if (quadMat.uniforms.uScreenTexture.value && quadMat.uniforms.uScreenTexture.value.dispose) {
-        quadMat.uniforms.uScreenTexture.value.dispose();
-      }
-      quadMat.uniforms.uScreenTexture.value = texture;
-      quadMat.uniforms.uHasScreenTexture.value = 1.0;
-    });
+    desktopImg.src = dataUrl;
   });
 
   window.bhApi.requestScreenCapture();
@@ -479,6 +480,14 @@ function buildBar(pct) {
 window.bhApi.onScaleUpdate((data) => {
   targetScale = data.scale;
   lastPayload = data;
+
+  if (data.immediateSnap || data.scale < currentScale * 0.5) {
+    currentScale = data.scale;
+    escapeEnergy = 0;
+    escapeTriggered = false;
+    if (typeof updateEnergyBar === 'function') updateEnergyBar();
+  }
+
   hud.innerHTML = buildHudHTML(data);
 
   if (data.triggerSupernova) {

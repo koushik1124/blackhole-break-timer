@@ -80,7 +80,17 @@ function startCaptureInterval() {
 function startIdleMonitor() {
   setInterval(() => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
-    if (gracePeriodActive) return;
+    if (gracePeriodActive) {
+      const gracedScale = (activeWorkSeconds / MAX_WORK_SECONDS) * MAX_SCALE;
+      mainWindow.webContents.send('update-scale', {
+        scale: gracedScale,
+        idleSec: 0,
+        workSec: Math.round(activeWorkSeconds),
+        debug: false,
+        triggerSupernova: false,
+      });
+      return;
+    }
 
     const idleSeconds = powerMonitor.getSystemIdleTime();
 
@@ -151,7 +161,7 @@ function applyDebugScale(scale) {
   gracePeriodActive = false;
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
-  mainWindow.webContents.send('update-scale', { scale, idleSec: 0, workSec: 0, debug: true, triggerSupernova: false });
+  mainWindow.webContents.send('update-scale', { scale, idleSec: 0, workSec: 0, debug: true, triggerSupernova: false, immediateSnap: true });
 
   if (scale >= BLOCK_THRESHOLD && !isBlocking) {
     mainWindow.setIgnoreMouseEvents(false);
@@ -184,6 +194,7 @@ app.whenReady().then(() => {
         workSec: Math.round(activeWorkSeconds),
         debug: false,
         triggerSupernova: false,
+        immediateSnap: true,
       });
     }
 
