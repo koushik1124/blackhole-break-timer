@@ -55,42 +55,22 @@ function createWindow() {
   mainWindow.showInactive();
   mainWindow.setBounds(primaryDisplay.bounds);
   mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
-  mainWindow.setContentProtection(true);
 
   mainWindow.webContents.once('did-finish-load', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.setBounds(screen.getPrimaryDisplay().bounds);
       mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
     }
-    setTimeout(captureDesktop, 200);
+    captureDesktop();
   });
 
   startIdleMonitor();
-  startCaptureInterval();
-}
-
-function startCaptureInterval() {
-  // 💡 Periodically recapture the desktop every 5 seconds seamlessly
-  setInterval(() => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    captureDesktop();
-  }, 5000);
 }
 
 function startIdleMonitor() {
   setInterval(() => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
-    if (gracePeriodActive) {
-      const gracedScale = (activeWorkSeconds / MAX_WORK_SECONDS) * MAX_SCALE;
-      mainWindow.webContents.send('update-scale', {
-        scale: gracedScale,
-        idleSec: 0,
-        workSec: Math.round(activeWorkSeconds),
-        debug: false,
-        triggerSupernova: false,
-      });
-      return;
-    }
+    if (gracePeriodActive) return;
 
     const idleSeconds = powerMonitor.getSystemIdleTime();
 
@@ -130,19 +110,12 @@ function startIdleMonitor() {
   }, POLL_MS);
 }
 
-let isCapturing = false;
-
 async function captureDesktop() {
-  if (!mainWindow || mainWindow.isDestroyed() || isCapturing) return;
-  isCapturing = true;
-
+  if (!mainWindow || mainWindow.isDestroyed()) return;
   try {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.bounds;
-
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
-      thumbnailSize: { width: Math.min(width, 1920), height: Math.min(height, 1080) }
+      thumbnailSize: { width: 1920, height: 1080 }
     });
 
     if (sources && sources.length > 0 && mainWindow && !mainWindow.isDestroyed()) {
@@ -151,8 +124,6 @@ async function captureDesktop() {
     }
   } catch (err) {
     console.error('[MAIN] Capture error:', err);
-  } finally {
-    isCapturing = false;
   }
 }
 
@@ -161,7 +132,7 @@ function applyDebugScale(scale) {
   gracePeriodActive = false;
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
-  mainWindow.webContents.send('update-scale', { scale, idleSec: 0, workSec: 0, debug: true, triggerSupernova: false, immediateSnap: true });
+  mainWindow.webContents.send('update-scale', { scale, idleSec: 0, workSec: 0, debug: true, triggerSupernova: false });
 
   if (scale >= BLOCK_THRESHOLD && !isBlocking) {
     mainWindow.setIgnoreMouseEvents(false);
@@ -194,7 +165,6 @@ app.whenReady().then(() => {
         workSec: Math.round(activeWorkSeconds),
         debug: false,
         triggerSupernova: false,
-        immediateSnap: true,
       });
     }
 
