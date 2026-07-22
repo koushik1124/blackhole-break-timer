@@ -25,15 +25,18 @@ if (!gotTheLock) {
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.bounds;
+  const { x, y, width, height } = primaryDisplay.bounds;
 
   mainWindow = new BrowserWindow({
+    x: x,
+    y: y,
     width: width,
     height: height,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    fullscreen: true,
+    fullscreen: false,
+    show: false,
     hasShadow: false,
     skipTaskbar: true,
     focusable: false,
@@ -49,6 +52,7 @@ function createWindow() {
   mainWindow.setMenu(null);
   mainWindow.loadFile('index.html');
   mainWindow.setIgnoreMouseEvents(true);
+  mainWindow.showInactive();
 
   mainWindow.webContents.once('did-finish-load', () => {
     captureDesktop();
