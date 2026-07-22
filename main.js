@@ -61,10 +61,19 @@ function createWindow() {
       mainWindow.setBounds(screen.getPrimaryDisplay().bounds);
       mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
     }
-    captureDesktop();
+    setTimeout(captureDesktop, 200);
   });
 
   startIdleMonitor();
+  startCaptureInterval();
+}
+
+function startCaptureInterval() {
+  // 💡 Periodically recapture the desktop every 10 seconds to keep lensing dynamic
+  setInterval(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    captureDesktop();
+  }, 10000);
 }
 
 function startIdleMonitor() {
@@ -110,20 +119,40 @@ function startIdleMonitor() {
   }, POLL_MS);
 }
 
+let isCapturing = false;
+
 async function captureDesktop() {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!mainWindow || mainWindow.isDestroyed() || isCapturing) return;
+  isCapturing = true;
+
   try {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.bounds;
+
+    // 💡 Briefly hide overlay so we capture actual desktop content underneath
+    mainWindow.setOpacity(0);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
-      thumbnailSize: { width: 1920, height: 1080 }
+      thumbnailSize: { width: Math.min(width, 1920), height: Math.min(height, 1080) }
     });
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setOpacity(1);
+    }
 
     if (sources && sources.length > 0 && mainWindow && !mainWindow.isDestroyed()) {
       const dataUrl = sources[0].thumbnail.toDataURL();
       mainWindow.webContents.send('screen-captured', dataUrl);
     }
   } catch (err) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setOpacity(1);
+    }
     console.error('[MAIN] Capture error:', err);
+  } finally {
+    isCapturing = false;
   }
 }
 
