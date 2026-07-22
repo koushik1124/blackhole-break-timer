@@ -120,8 +120,7 @@ void main() {
 
   float rScreen = length(uv);
 
-  float collapseFactor = smoothstep(0.8, 1.5, uScale);
-  float r_eh = uScale * 0.12 * (1.0 + collapseFactor * 2.5);
+  float r_eh = uScale * 0.18;
   float r_ph = r_eh * 1.5;
 
   vec3 ro = vec3(uv.x, uv.y, -3.0);
@@ -180,7 +179,7 @@ void main() {
   float swirlSpeed = 1.0 + uDriftSpeed * 4.0;
   float swirlTwist = (r_eh * 1.5) / (rScreen + r_eh * 0.1);
   float angleScreen = atan(uv.y, uv.x);
-  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 0.8 * swirlSpeed + rScreen * 6.0) * (1.0 + collapseFactor);
+  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 0.8 * swirlSpeed + rScreen * 6.0);
   vec2 distortedDir = vec2(cos(twistedAngle), sin(twistedAngle));
 
   float distortedR = max(0.0, rScreen - gravityLensStrength * 0.35);
@@ -256,7 +255,7 @@ varying float vAlpha;
 varying vec3  vColor;
 
 void main() {
-  float eh = uScale * 0.12;
+  float eh = uScale * 0.18;
   float scaledR = aRadius * eh * 5.5;
 
   float speed = 1.0 / pow(max(aRadius, 0.3), 0.75);
@@ -594,7 +593,7 @@ Object.assign(blastBanner.style, {
   pointerEvents: 'none',
   opacity: '0',
   transition: 'opacity 0.3s ease',
-  background: 'radial-gradient(circle at center, rgba(167,139,250,0.35) 0%, rgba(0,0,0,0.8) 70%)',
+  background: 'transparent',
   userSelect: 'none',
 });
 
@@ -729,7 +728,7 @@ function triggerHawkingBlast() {
   console.log('[RENDERER] ⚡ Hawking Blast 100% reached! Executing IPC...');
 
   blastBanner.style.opacity = '1';
-  blastText.style.animation = 'hawking-pulse 2.2s ease-out forwards';
+  blastText.style.animation = 'hawking-pulse 1.5s ease-out forwards';
 
   energyFill.style.background = 'linear-gradient(90deg, #f0abfc, #ffffff, #f0abfc)';
   energyFill.style.boxShadow = '0 0 50px rgba(255,255,255,0.9)';
@@ -749,7 +748,7 @@ function triggerHawkingBlast() {
     energyFill.style.backgroundSize = '300% 100%';
     energyPct.textContent = '0%';
     escapeTriggered = false;
-  }, 2800);
+  }, 1500);
 }
 
 /* ═══════════════════════════════════════════════════════════
