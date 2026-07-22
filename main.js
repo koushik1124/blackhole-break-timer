@@ -95,7 +95,7 @@ function startIdleMonitor() {
     });
 
     if (targetScale >= BLOCK_THRESHOLD && !isBlocking) {
-      mainWindow.setIgnoreMouseEvents(false, { forward: true });
+      mainWindow.setIgnoreMouseEvents(false);
       isBlocking = true;
     } else if (targetScale < BLOCK_THRESHOLD && isBlocking) {
       mainWindow.setIgnoreMouseEvents(true);
@@ -129,7 +129,7 @@ function applyDebugScale(scale) {
   mainWindow.webContents.send('update-scale', { scale, idleSec: 0, workSec: 0, debug: true, triggerSupernova: false });
 
   if (scale >= BLOCK_THRESHOLD && !isBlocking) {
-    mainWindow.setIgnoreMouseEvents(false, { forward: true });
+    mainWindow.setIgnoreMouseEvents(false);
     isBlocking = true;
   } else if (scale < BLOCK_THRESHOLD && isBlocking) {
     mainWindow.setIgnoreMouseEvents(true);
