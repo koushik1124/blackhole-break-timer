@@ -1,0 +1,43 @@
+{
+  "name": "blackhole-break-timer",
+  "version": "1.0.0",
+  "description": "3D Raymarched Black Hole Wellbeing & Break Timer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.blackhole.breaktimer",
+    "productName": "Black Hole Break Timer",
+    "files": [
+      "**/*",
+      "!dist/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Black Hole Timer"
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}
