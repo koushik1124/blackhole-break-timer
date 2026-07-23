@@ -192,7 +192,11 @@ void main() {
 
   vec4 desktopTex = texture2D(uScreenTexture, distortedScreenUV);
   vec3 col = (uHasScreenTexture > 0.5) ? desktopTex.rgb : vec3(0.0);
-  float alpha = (uHasScreenTexture > 0.5) ? desktopTex.a : 0.0;
+
+  // Scope desktop lensing alpha strictly to the black hole influence radius
+  float lensInfluenceRadius = r_eh * 6.0;
+  float lensAlpha = (uHasScreenTexture > 0.5) ? smoothstep(lensInfluenceRadius, r_eh * 0.5, rScreen) : 0.0;
+  float alpha = lensAlpha;
 
   if (uHasScreenTexture > 0.5) {
     col *= 1.0 + (gravityLensStrength * 0.45);
@@ -228,10 +232,6 @@ void main() {
   }
 
   float fade = smoothstep(0.0, 0.05, uScale);
-  if (uHasScreenTexture > 0.5) {
-    alpha = max(alpha, smoothstep(0.0, 0.02, uScale));
-  }
-
   gl_FragColor = vec4(col * fade, clamp(alpha * fade, 0.0, 1.0));
 }
 `;
