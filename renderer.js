@@ -57,56 +57,61 @@ float fbm(vec2 p) {
 
 // ── 3D Disk Density & Color Function ────────────────────────
 vec4 sampleDisk(vec3 pos, float r_eh, float uTime, float uDriftSpeed) {
-  float rIn  = r_eh * 1.8;
-  float rOut = r_eh * 5.5;
+  float rIn  = r_eh * 1.25; // ISCO tight to event horizon
+  float rOut = r_eh * 6.0;
   float r    = length(pos.xz);
   
   if (r < rIn || r > rOut) return vec4(0.0);
 
-  float thickness = r_eh * 0.06 * (1.0 + (r - rIn) / (rOut - rIn) * 0.5);
+  float thickness = r_eh * 0.08 * (1.0 + (r - rIn) / (rOut - rIn) * 0.6);
   float vFade = exp(-pow(pos.y / thickness, 2.0));
-  if (vFade < 0.01) return vec4(0.0);
+  if (vFade < 0.005) return vec4(0.0);
 
   float dn = clamp((r - rIn) / (rOut - rIn), 0.0, 1.0);
   float angle = atan(pos.z, pos.x);
 
   float orbital = 1.0 / pow(max(r / r_eh, 1.0), 0.75);
-  float spin    = angle + uTime * orbital * 0.5 * (1.0 + uDriftSpeed * 5.0);
+  float spin    = angle + uTime * orbital * 0.6 * (1.0 + uDriftSpeed * 5.0);
 
-  vec2 dc = vec2(spin, r * 12.0);
+  vec2 dc = vec2(spin, r * 14.0);
   float turb = fbm(dc * 2.5 + uTime * 0.3) + fbm(dc * 5.0 - uTime * 0.5) * 0.5;
-  float spiral = sin(spin * 4.0 - r * 15.0 + uTime * 0.8) * 0.5 + 0.5;
-  float density = mix(spiral, turb, 0.45) * vFade;
+  float spiral = sin(spin * 3.0 - r * 18.0 + uTime * 0.8) * 0.5 + 0.5;
+  
+  // Concentric Saturn-like ring structure
+  float ringTexture = sin(r * 32.0 - uTime * 0.4) * 0.3 + 0.7;
+  float ringLanes   = smoothstep(0.15, 0.85, sin(r * 55.0 + uTime * 0.2) * 0.5 + 0.5) * 0.35 + 0.65;
 
-  float edgeFade = smoothstep(rIn, rIn * 1.25, r) * smoothstep(rOut, rOut * 0.8, r);
+  float density = mix(spiral, turb, 0.4) * ringTexture * ringLanes * vFade;
+
+  float edgeFade = smoothstep(rIn, rIn * 1.12, r) * smoothstep(rOut, rOut * 0.85, r);
   density *= edgeFade;
 
   if (density <= 0.001) return vec4(0.0);
 
   float velX = -sin(angle); 
-  float beta = velX * clamp(0.7 * sqrt(r_eh / r), 0.0, 0.85);
+  float beta = velX * clamp(0.75 * sqrt(r_eh / r), 0.0, 0.88);
 
   float gamma = 1.0 / sqrt(1.0 - beta * beta);
   float doppler = 1.0 / (gamma * (1.0 - beta * 0.95));
 
   float t = 1.0 - dn;
-  vec3 hotCol   = vec3(2.5, 2.3, 1.9);
-  vec3 warmCol  = vec3(2.0, 1.1, 0.2);
-  vec3 coolCol  = vec3(1.4, 0.35, 0.04);
-  vec3 faintCol = vec3(0.6, 0.08, 0.01);
+  vec3 hotCol   = vec3(3.0, 2.7, 2.2); // Incandescent inner rim
+  vec3 warmCol  = vec3(2.4, 1.3, 0.25); // Golden-amber ring glow
+  vec3 coolCol  = vec3(1.6, 0.45, 0.05); // Fiery orange
+  vec3 faintCol = vec3(0.7, 0.10, 0.01); // Cosmic red edge
 
   vec3 baseCol = (t > 0.7) ? mix(warmCol, hotCol, (t - 0.7) / 0.3)
                : (t > 0.3) ? mix(coolCol, warmCol, (t - 0.3) / 0.4)
                :             mix(faintCol, coolCol, t / 0.3);
 
-  vec3 blueShiftCol = mix(baseCol, vec3(0.8, 1.4, 2.5) * 1.5, clamp((doppler - 1.0) * 1.2, 0.0, 1.0));
-  vec3 redShiftCol  = mix(baseCol, vec3(0.8, 0.1, 0.02), clamp((1.0 - doppler) * 1.5, 0.0, 1.0));
+  vec3 blueShiftCol = mix(baseCol, vec3(0.9, 1.6, 3.0) * 1.6, clamp((doppler - 1.0) * 1.2, 0.0, 1.0));
+  vec3 redShiftCol  = mix(baseCol, vec3(0.9, 0.12, 0.02), clamp((1.0 - doppler) * 1.5, 0.0, 1.0));
   
   vec3 finalColor = (doppler >= 1.0) ? blueShiftCol : redShiftCol;
 
   float beaming = pow(doppler, 3.2);
-  finalColor *= beaming * density * 2.5;
-  float alpha = clamp(density * vFade * beaming * 0.90, 0.0, 1.0);
+  finalColor *= beaming * density * 3.2;
+  float alpha = clamp(density * vFade * beaming * 0.95, 0.0, 1.0);
 
   return vec4(finalColor, alpha);
 }
@@ -155,7 +160,7 @@ void main() {
       break;
     }
 
-    vec3 gravityForce = -normalize(rayPos) * (2.2 * r_eh * r_eh / (r * r * r + 0.0001));
+    vec3 gravityForce = -normalize(rayPos) * (2.8 * r_eh * r_eh / (r * r * r + 0.0001));
     rayDir = normalize(rayDir + gravityForce * stepSize);
 
     rayPos += rayDir * stepSize;
@@ -208,7 +213,7 @@ void main() {
   float photonRingWidth = r_eh * 0.035;
   float photonRing = exp(-pow(photonDist / photonRingWidth, 2.0));
   
-  vec3 photonRingColor = vec3(2.5, 2.0, 1.4) * 3.8 * photonRing;
+  vec3 photonRingColor = vec3(3.0, 2.5, 1.8) * 4.5 * photonRing;
   col += photonRingColor;
   alpha = max(alpha, photonRing * 0.95);
 
