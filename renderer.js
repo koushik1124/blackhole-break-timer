@@ -90,23 +90,23 @@ vec4 sampleDisk(vec3 pos, float r_eh, float uTime, float uDriftSpeed) {
   float doppler = 1.0 / (gamma * (1.0 - beta * 0.95));
 
   float t = 1.0 - dn;
-  vec3 hotCol   = vec3(1.0, 0.96, 0.90);
-  vec3 warmCol  = vec3(1.0, 0.55, 0.10);
-  vec3 coolCol  = vec3(0.75, 0.15, 0.03);
-  vec3 faintCol = vec3(0.35, 0.04, 0.01);
+  vec3 hotCol   = vec3(2.5, 2.3, 1.9);
+  vec3 warmCol  = vec3(2.0, 1.1, 0.2);
+  vec3 coolCol  = vec3(1.4, 0.35, 0.04);
+  vec3 faintCol = vec3(0.6, 0.08, 0.01);
 
   vec3 baseCol = (t > 0.7) ? mix(warmCol, hotCol, (t - 0.7) / 0.3)
                : (t > 0.3) ? mix(coolCol, warmCol, (t - 0.3) / 0.4)
                :             mix(faintCol, coolCol, t / 0.3);
 
-  vec3 blueShiftCol = mix(baseCol, vec3(0.4, 0.75, 1.0) * 1.8, clamp((doppler - 1.0) * 1.2, 0.0, 1.0));
-  vec3 redShiftCol  = mix(baseCol, vec3(0.6, 0.05, 0.01), clamp((1.0 - doppler) * 1.5, 0.0, 1.0));
+  vec3 blueShiftCol = mix(baseCol, vec3(0.8, 1.4, 2.5) * 1.5, clamp((doppler - 1.0) * 1.2, 0.0, 1.0));
+  vec3 redShiftCol  = mix(baseCol, vec3(0.8, 0.1, 0.02), clamp((1.0 - doppler) * 1.5, 0.0, 1.0));
   
   vec3 finalColor = (doppler >= 1.0) ? blueShiftCol : redShiftCol;
 
-  float beaming = pow(doppler, 3.5);
-  finalColor *= beaming * density * 2.2;
-  float alpha = clamp(density * vFade * beaming * 0.85, 0.0, 1.0);
+  float beaming = pow(doppler, 3.2);
+  finalColor *= beaming * density * 2.5;
+  float alpha = clamp(density * vFade * beaming * 0.90, 0.0, 1.0);
 
   return vec4(finalColor, alpha);
 }
@@ -120,8 +120,7 @@ void main() {
 
   float rScreen = length(uv);
 
-  float collapseFactor = smoothstep(0.8, 1.5, uScale);
-  float r_eh = uScale * 0.12 * (1.0 + collapseFactor * 2.5);
+  float r_eh = uScale * 0.18;
   float r_ph = r_eh * 1.5;
 
   vec3 ro = vec3(uv.x, uv.y, -3.0);
@@ -156,7 +155,7 @@ void main() {
       break;
     }
 
-    vec3 gravityForce = -normalize(rayPos) * (1.5 * r_eh * r_eh / (r * r * r + 0.0001));
+    vec3 gravityForce = -normalize(rayPos) * (2.2 * r_eh * r_eh / (r * r * r + 0.0001));
     rayDir = normalize(rayDir + gravityForce * stepSize);
 
     rayPos += rayDir * stepSize;
@@ -180,7 +179,7 @@ void main() {
   float swirlSpeed = 1.0 + uDriftSpeed * 4.0;
   float swirlTwist = (r_eh * 1.5) / (rScreen + r_eh * 0.1);
   float angleScreen = atan(uv.y, uv.x);
-  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 0.8 * swirlSpeed + rScreen * 6.0) * (1.0 + collapseFactor);
+  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 0.8 * swirlSpeed + rScreen * 6.0);
   vec2 distortedDir = vec2(cos(twistedAngle), sin(twistedAngle));
 
   float distortedR = max(0.0, rScreen - gravityLensStrength * 0.35);
@@ -209,7 +208,7 @@ void main() {
   float photonRingWidth = r_eh * 0.035;
   float photonRing = exp(-pow(photonDist / photonRingWidth, 2.0));
   
-  vec3 photonRingColor = vec3(1.0, 0.85, 0.65) * 3.5 * photonRing;
+  vec3 photonRingColor = vec3(2.5, 2.0, 1.4) * 3.8 * photonRing;
   col += photonRingColor;
   alpha = max(alpha, photonRing * 0.95);
 
@@ -256,7 +255,7 @@ varying float vAlpha;
 varying vec3  vColor;
 
 void main() {
-  float eh = uScale * 0.12;
+  float eh = uScale * 0.18;
   float scaledR = aRadius * eh * 5.5;
 
   float speed = 1.0 / pow(max(aRadius, 0.3), 0.75);

@@ -157,7 +157,7 @@ app.whenReady().then(() => {
   ipcMain.on('trigger-grace-period', () => {
     gracePeriodActive = true;
     debugForcedScale = null;
-    activeWorkSeconds = Math.round(MAX_WORK_SECONDS * 0.20);
+    activeWorkSeconds = Math.min(activeWorkSeconds, Math.round(MAX_WORK_SECONDS * 0.20));
 
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.setIgnoreMouseEvents(true);
