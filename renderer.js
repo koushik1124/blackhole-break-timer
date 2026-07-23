@@ -585,7 +585,7 @@ Object.assign(blastBanner.style, {
   pointerEvents: 'none',
   opacity: '0',
   transition: 'opacity 0.3s ease',
-  background: 'radial-gradient(circle at center, rgba(167,139,250,0.35) 0%, rgba(0,0,0,0.8) 70%)',
+  background: 'radial-gradient(circle at center, rgba(167,139,250,0.25) 0%, rgba(0,0,0,0) 70%)',
   userSelect: 'none',
 });
 
