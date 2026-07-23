@@ -38,18 +38,29 @@ This is not a notification. This is a **consequence**.
 
 ## ✨ Core Features
 
-### 🔭 Real-Time Schwarzschild Raymarching
+### 🔭 Interstellar Gargantua Raymarching & Rings
 
-The black hole is not a sprite, video, or pre-rendered animation. Every pixel is computed per-frame using a **custom GLSL fragment shader** that:
+The black hole is rendered per-frame using a **custom 3D GLSL raymarching shader**:
 
-- **Raymarches through curved spacetime** using a Schwarzschild geodesic approximation with 45-step ray integration
-- **Gravitationally lenses your actual desktop** — captured via Electron's `desktopCapturer` and distorted in real-time
-- **Renders a 3D tilted accretion disk** with orbital velocity gradients, turbulence via fBm noise, and spiral arm structures
-- **Simulates relativistic Doppler beaming** — the approaching side of the disk is blue-shifted and intensified (~D³·⁵), the receding side is red-shifted and dimmed
-- **Draws a razor-thin photon ring** at r = 1.5 × r_eh (the photon sphere) with 3.5× intensity bloom
-- **Projects an outer relativistic aura** with animated interference patterns
+- **Physical Accretion Rings**: Saturn-like concentric density wave rings, ISCO inner rim (r = 1.25 × r_eh), and incandescent white-gold core
+- **Relativistic Doppler Beaming**: Approaching disk is blue-shifted (~D³·²), receding side is red-shifted
+- **Gravitational Lensing**: Distorts your actual desktop content through Schwarzschild geodesic raybending
+- **Scoped Alpha Mask**: Desktop outside the black hole remains 100% transparent and crisp without screen-darkening
 
-All of this runs on the GPU at 60 FPS through a single fullscreen quad.
+### 🌌 Smooth Top-Right Orbital Drift Trajectory
+
+- **0% – 20% Scale**: Starts gracefully floating in the **Top-Right Corner** (`+0.55, +0.35`)
+- **20% – 50% Scale**: Gradually drifts downward across the right-mid screen (leaving **70%+ of your screen wide open and unblocked**)
+- **80% Scale**: Arrives at **Screen Center `(0, 0)`** where mouse blocking activates
+- **100% Scale**: Expands to **engulf 100% of the entire display screen** from corner to corner
+
+### 🎛️ Compact Pill Badge & HUD Modes
+
+Switch between HUD modes anytime:
+- **Compact Pill Badge** (Default): Sleek single-line status badge in the top-left corner
+- **Full Diagnostic HUD**: Multiline progress bars, scale ratios, and drift metrics
+- **Hidden Mode**: 100% minimal interface with zero HUD elements
+- Toggle modes instantly using **`Ctrl+Shift+H`** or the System Tray menu
 
 ### 🛡️ Enforced Wellbeing Lockdown
 
@@ -178,12 +189,13 @@ On launch, the app captures a screenshot of your actual desktop via `desktopCapt
 
 | Shortcut | Action |
 |----------|--------|
+| `Ctrl+Shift+H` | **Toggle HUD Display Mode** (Compact Pill Badge ⇆ Full Diagnostic HUD ⇆ Hidden) |
 | `Ctrl+Shift+B` | **Emergency Exit** — resets scale to 0%, unblocks mouse, quits app |
 | `Ctrl+Shift+0` | Set scale to **0%** (invisible) |
 | `Ctrl+Shift+1` | Set scale to **25%** |
 | `Ctrl+Shift+2` | Set scale to **50%** |
 | `Ctrl+Shift+3` | Set scale to **80%** (triggers mouse block) |
-| `Ctrl+Shift+4` | Set scale to **100%** (full black hole) |
+| `Ctrl+Shift+4` | Set scale to **100%** (full screen black hole) |
 | `Ctrl+Shift+R` | **Resume Natural Growth** — clears debug override |
 
 ### In-App Escape (When Mouse Is Blocked)
