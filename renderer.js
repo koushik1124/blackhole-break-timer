@@ -936,15 +936,18 @@ function animate() {
   currentScale += (targetScale - currentScale) * 0.02;
   if (currentScale < 0.0005 && targetScale === 0) currentScale = 0;
 
-  const shrink = 1.0 - Math.min(currentScale / 1.2, 1.0);
-  const floatR = MAX_FLOAT_RADIUS * shrink;
+  const shrink = Math.max(0, 1.0 - Math.pow(currentScale / 1.2, 1.5));
 
-  const cx = Math.sin(t * 0.25) * floatR;
-  const cy = Math.cos(t * 0.18) * floatR;
+  // 🌌 Majestic full-screen orbit: starts top-right (+0.55, +0.35), drifts downwards across middle and bottom
+  const orbitX = 0.58 * shrink;
+  const orbitY = 0.38 * shrink;
+
+  const cx = Math.sin(t * 0.14 + 0.75) * orbitX + Math.cos(t * 0.05) * 0.12 * shrink;
+  const cy = Math.cos(t * 0.09) * orbitY + Math.sin(t * 0.04) * 0.08 * shrink;
   currentCenter.set(cx, cy);
 
-  const vx = Math.cos(t * 0.25) * 0.25 * floatR;
-  const vy = -Math.sin(t * 0.18) * 0.18 * floatR;
+  const vx = Math.cos(t * 0.14 + 0.75) * 0.14 * orbitX;
+  const vy = -Math.sin(t * 0.09) * 0.09 * orbitY;
   currentDriftSpeed = Math.sqrt(vx * vx + vy * vy);
 
   // ── Supernova shockwave: temporarily boost uDriftSpeed so the disk/particle
