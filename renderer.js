@@ -73,18 +73,15 @@ vec4 sampleDisk(vec3 pos, float r_eh, float uTime, float uDriftSpeed) {
   float orbital = 1.0 / pow(max(r / r_eh, 1.0), 0.75);
   float spin    = angle + uTime * orbital * 0.6 * (1.0 + uDriftSpeed * 5.0);
 
-  vec2 dc = vec2(spin, r * 14.0);
-  float turb = fbm(dc * 2.5 + uTime * 0.3) + fbm(dc * 5.0 - uTime * 0.5) * 0.5;
-  float spiral = sin(spin * 3.0 - r * 18.0 + uTime * 0.8) * 0.5 + 0.5;
-  
-  // Concentric Saturn-like dynamic morphing ring structure
-  float ringWave    = sin(r * (28.0 + uScale * 14.0) - uTime * 0.6 + pos.x * 3.0) * 0.35 + 0.65;
-  float ringLanes   = smoothstep(0.12, 0.88, sin(r * 52.0 + spin * 2.0 - pos.z * 4.0) * 0.5 + 0.5) * 0.35 + 0.65;
+  // 🪐 Solid, 360° continuous concentric accretion disk rings (smooth, non-dotted)
+  float mainRing      = sin((r - rIn) * 18.0 - uTime * 0.5) * 0.22 + 0.78;
+  float subRingLanes  = sin((r - rIn) * 42.0 + uTime * 0.3) * 0.18 + 0.82;
+  float smoothSpiral  = sin(spin * 2.0 - (r - rIn) * 6.0 + uTime * 0.4) * 0.15 + 0.85;
 
-  float density = mix(spiral, turb, 0.4) * ringWave * ringLanes * vFade;
+  float ringDensity   = mainRing * subRingLanes * smoothSpiral * vFade;
 
-  float edgeFade = smoothstep(rIn, rIn * 1.12, r) * smoothstep(rOut, rOut * 0.85, r);
-  density *= edgeFade;
+  float edgeFade      = smoothstep(rIn, rIn * 1.08, r) * smoothstep(rOut, rOut * 0.88, r);
+  float density       = ringDensity * edgeFade;
 
   if (density <= 0.001) return vec4(0.0);
 
@@ -304,8 +301,8 @@ varying vec3  vColor;
 void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
-  float s = pow(1.0 - d * 2.0, 2.0);
-  gl_FragColor = vec4(vColor * s * 1.5, vAlpha * s);
+  float s = exp(-d * d * 10.0);
+  gl_FragColor = vec4(vColor * s * 1.8, vAlpha * s * 0.7);
 }
 `;
 
