@@ -944,20 +944,20 @@ function animate() {
   currentScale += (targetScale - currentScale) * 0.02;
   if (currentScale < 0.0005 && targetScale === 0) currentScale = 0;
 
-  // 🌌 Medium-pace active revolving orbit sweeping around the screen in a continuous figure-8 trajectory
+  // 🌌 Full-screen corner-to-corner cosmic trajectory: sweeps across Top-Right, Bottom-Right, Bottom-Left, and Top-Left corners
   const orbitProgress = Math.min(currentScale / 1.2, 1.0);
-  const shrink = 1.0 - 0.75 * orbitProgress; // Gently contracts towards center as scale grows to 80%
+  const shrink = 1.0 - Math.pow(Math.max(0, orbitProgress - 0.5) / 0.5, 2.0) * 0.90; // Roams all 4 corners freely, smoothly centers at 80%
 
-  const orbitSpeed = 0.55; // Medium, lively pace
-  const orbitRadiusX = 0.48 * shrink;
-  const orbitRadiusY = 0.32 * shrink;
+  const orbitSpeed = 0.45; // Medium, majestic pace
+  const orbitRadiusX = 0.72 * shrink;
+  const orbitRadiusY = 0.40 * shrink;
 
-  const cx = Math.sin(t * orbitSpeed + 0.6) * orbitRadiusX + Math.cos(t * orbitSpeed * 0.35) * 0.10 * shrink;
-  const cy = Math.cos(t * orbitSpeed * 0.7) * orbitRadiusY + Math.sin(t * orbitSpeed * 0.45) * 0.08 * shrink;
+  const cx = Math.sin(t * orbitSpeed + 0.8) * orbitRadiusX;
+  const cy = Math.sin(t * orbitSpeed * 1.5 + 0.2) * orbitRadiusY;
   currentCenter.set(cx, cy);
 
-  const vx = Math.cos(t * orbitSpeed + 0.6) * orbitSpeed * orbitRadiusX;
-  const vy = -Math.sin(t * orbitSpeed * 0.7) * orbitSpeed * 0.7 * orbitRadiusY;
+  const vx = Math.cos(t * orbitSpeed + 0.8) * orbitSpeed * orbitRadiusX;
+  const vy = Math.cos(t * orbitSpeed * 1.5 + 0.2) * orbitSpeed * 1.5 * orbitRadiusY;
   currentDriftSpeed = Math.sqrt(vx * vx + vy * vy);
 
   // ── Supernova shockwave: temporarily boost uDriftSpeed so the disk/particle
