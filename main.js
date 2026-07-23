@@ -74,11 +74,7 @@ function startIdleMonitor() {
     const idleSeconds = powerMonitor.getSystemIdleTime();
 
     if (idleSeconds < 5) {
-      if (gracePeriodActive) {
-        activeWorkSeconds = Math.round(MAX_WORK_SECONDS * 0.20);
-      } else {
-        activeWorkSeconds += POLL_MS / 1000;
-      }
+      activeWorkSeconds += POLL_MS / 1000;
     }
 
     if (idleSeconds >= IDLE_BREAK_SEC) {
@@ -88,7 +84,12 @@ function startIdleMonitor() {
     }
 
     const naturalScale = Math.min((activeWorkSeconds / MAX_WORK_SECONDS) * MAX_SCALE, MAX_SCALE);
-    const targetScale = debugForcedScale !== null ? debugForcedScale : naturalScale;
+    let targetScale = debugForcedScale !== null ? debugForcedScale : naturalScale;
+
+    if (gracePeriodActive && debugForcedScale === null) {
+      const gracedMaxScale = 0.20 * MAX_SCALE;
+      targetScale = Math.min(targetScale, gracedMaxScale);
+    }
 
     let triggerSupernova = false;
     if (pendingSupernova && idleSeconds < 5) {
