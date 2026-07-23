@@ -206,12 +206,18 @@ void main() {
   float lensAlpha = (uHasScreenTexture > 0.5) ? smoothstep(lensInfluenceRadius, r_eh * 0.5, rScreen) : 0.0;
   float alpha = lensAlpha;
 
-  if (uHasScreenTexture > 0.5) {
-    col *= 1.0 + (gravityLensStrength * 0.45);
+  // 🌌 Base color: if ray hit event horizon, black hole core is pitch black. Otherwise, lensed desktop texture.
+  if (hitHorizon) {
+    col = vec3(0.0);
   }
 
+  // Composite 360° accretion disk rings ON TOP of the event horizon core & background
   col = mix(col, col + diskColorAccum, clamp(diskAlphaAccum, 0.0, 1.0));
   alpha = max(alpha, diskAlphaAccum * 0.95);
+
+  if (hitHorizon) {
+    alpha = 1.0;
+  }
 
   float photonDist = abs(minDistToOrigin - r_ph);
   float photonRingWidth = r_eh * 0.035;
@@ -220,11 +226,6 @@ void main() {
   vec3 photonRingColor = vec3(3.0, 2.5, 1.8) * 4.5 * photonRing;
   col += photonRingColor;
   alpha = max(alpha, photonRing * 0.95);
-
-  if (hitHorizon) {
-    col = vec3(0.0);
-    alpha = 1.0;
-  }
 
   float auraGlow = pow(r_eh * 1.5 / (rScreen + r_eh * 0.3), 2.5) * 0.15;
   auraGlow *= 0.85 + 0.15 * sin(uTime * 1.5 + rScreen * 10.0);
