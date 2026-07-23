@@ -179,16 +179,18 @@ void main() {
     if (r > 6.0 && dot(rayPos, rayDir) > 0.0) break;
   }
 
-  vec2 lensingOffset = (rayDir.xy - rd.xy) * 1.5;
-  float gravityLensStrength = (r_eh * r_eh * 0.85) / (rScreen * rScreen + r_eh * 0.01 + 0.0001);
+  vec2 lensingOffset = (rayDir.xy - rd.xy) * 2.2;
+  float gravityLensStrength = (r_eh * r_eh * 1.6) / (rScreen * rScreen + r_eh * 0.01 + 0.0001);
   
-  float swirlSpeed = 1.0 + uDriftSpeed * 4.0;
-  float swirlTwist = (r_eh * 1.5) / (rScreen + r_eh * 0.1);
+  float swirlSpeed = 1.2 + uDriftSpeed * 5.0;
+  float swirlTwist = (r_eh * 2.5) / (rScreen + r_eh * 0.08);
   float angleScreen = atan(uv.y, uv.x);
-  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 0.8 * swirlSpeed + rScreen * 6.0);
+  float twistedAngle = angleScreen + swirlTwist * sin(uTime * 1.2 * swirlSpeed + rScreen * 8.0);
   vec2 distortedDir = vec2(cos(twistedAngle), sin(twistedAngle));
 
-  float distortedR = max(0.0, rScreen - gravityLensStrength * 0.35);
+  // Active radial vortex suction pull into the singularity
+  float suction = gravityLensStrength * 0.55 + sin(uTime * 2.0 - rScreen * 10.0) * r_eh * 0.06;
+  float distortedR = max(0.0, rScreen - suction);
   vec2 distortedUV = distortedDir * distortedR + uCenter;
 
   float minDim = min(uResolution.x, uResolution.y);
@@ -942,23 +944,20 @@ function animate() {
   currentScale += (targetScale - currentScale) * 0.02;
   if (currentScale < 0.0005 && targetScale === 0) currentScale = 0;
 
-  // 🌌 Smooth natural trajectory: starts at Top-Right (+0.55, +0.35) and gradually drifts downwards to Center (0, 0) as scale grows from 0% to 80% (1.2)
-  const driftProgress = Math.min(currentScale / 1.2, 1.0);
-  const startX = 0.55;
-  const startY = 0.35;
+  // 🌌 Medium-pace active revolving orbit sweeping around the screen in a continuous figure-8 trajectory
+  const orbitProgress = Math.min(currentScale / 1.2, 1.0);
+  const shrink = 1.0 - 0.75 * orbitProgress; // Gently contracts towards center as scale grows to 80%
 
-  const baseX = startX * (1.0 - driftProgress);
-  const baseY = startY * (1.0 - driftProgress);
+  const orbitSpeed = 0.55; // Medium, lively pace
+  const orbitRadiusX = 0.48 * shrink;
+  const orbitRadiusY = 0.32 * shrink;
 
-  const wobbleX = Math.sin(t * 0.15) * 0.08 * (1.0 - driftProgress);
-  const wobbleY = Math.cos(t * 0.12) * 0.06 * (1.0 - driftProgress);
-
-  const cx = baseX + wobbleX;
-  const cy = baseY + wobbleY;
+  const cx = Math.sin(t * orbitSpeed + 0.6) * orbitRadiusX + Math.cos(t * orbitSpeed * 0.35) * 0.10 * shrink;
+  const cy = Math.cos(t * orbitSpeed * 0.7) * orbitRadiusY + Math.sin(t * orbitSpeed * 0.45) * 0.08 * shrink;
   currentCenter.set(cx, cy);
 
-  const vx = -startX * (0.02 / 1.2) + Math.cos(t * 0.15) * 0.012;
-  const vy = -startY * (0.02 / 1.2) - Math.sin(t * 0.12) * 0.007;
+  const vx = Math.cos(t * orbitSpeed + 0.6) * orbitSpeed * orbitRadiusX;
+  const vy = -Math.sin(t * orbitSpeed * 0.7) * orbitSpeed * 0.7 * orbitRadiusY;
   currentDriftSpeed = Math.sqrt(vx * vx + vy * vy);
 
   // ── Supernova shockwave: temporarily boost uDriftSpeed so the disk/particle
