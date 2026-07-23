@@ -125,7 +125,8 @@ void main() {
 
   float rScreen = length(uv);
 
-  float r_eh = pow(uScale / 1.5, 1.8) * 0.85;
+  float progress = clamp(uScale / 1.5, 0.0, 1.0);
+  float r_eh = pow(progress, 1.5) * 0.88;
   float r_ph = r_eh * 1.5;
 
   vec3 ro = vec3(uv.x, uv.y, -3.0);
@@ -260,7 +261,8 @@ varying float vAlpha;
 varying vec3  vColor;
 
 void main() {
-  float eh = pow(uScale / 1.5, 1.8) * 0.85;
+  float progress = clamp(uScale / 1.5, 0.0, 1.0);
+  float eh = pow(progress, 1.5) * 0.88;
   float scaledR = (aRadius * 0.7 + 0.3) * eh * 3.5;
 
   float speed = 1.0 / pow(max(aRadius, 0.3), 0.75);
@@ -940,18 +942,23 @@ function animate() {
   currentScale += (targetScale - currentScale) * 0.02;
   if (currentScale < 0.0005 && targetScale === 0) currentScale = 0;
 
-  const shrink = Math.max(0, 1.0 - Math.pow(currentScale / 1.2, 1.5));
+  // 🌌 Smooth natural trajectory: starts at Top-Right (+0.55, +0.35) and gradually drifts downwards to Center (0, 0) as scale grows from 0% to 80% (1.2)
+  const driftProgress = Math.min(currentScale / 1.2, 1.0);
+  const startX = 0.55;
+  const startY = 0.35;
 
-  // 🌌 Majestic full-screen orbit: starts top-right (+0.55, +0.35), drifts downwards across middle and bottom
-  const orbitX = 0.58 * shrink;
-  const orbitY = 0.38 * shrink;
+  const baseX = startX * (1.0 - driftProgress);
+  const baseY = startY * (1.0 - driftProgress);
 
-  const cx = Math.sin(t * 0.14 + 0.75) * orbitX + Math.cos(t * 0.05) * 0.12 * shrink;
-  const cy = Math.cos(t * 0.09) * orbitY + Math.sin(t * 0.04) * 0.08 * shrink;
+  const wobbleX = Math.sin(t * 0.15) * 0.08 * (1.0 - driftProgress);
+  const wobbleY = Math.cos(t * 0.12) * 0.06 * (1.0 - driftProgress);
+
+  const cx = baseX + wobbleX;
+  const cy = baseY + wobbleY;
   currentCenter.set(cx, cy);
 
-  const vx = Math.cos(t * 0.14 + 0.75) * 0.14 * orbitX;
-  const vy = -Math.sin(t * 0.09) * 0.09 * orbitY;
+  const vx = -startX * (0.02 / 1.2) + Math.cos(t * 0.15) * 0.012;
+  const vy = -startY * (0.02 / 1.2) - Math.sin(t * 0.12) * 0.007;
   currentDriftSpeed = Math.sqrt(vx * vx + vy * vy);
 
   // ── Supernova shockwave: temporarily boost uDriftSpeed so the disk/particle
