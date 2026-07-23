@@ -125,7 +125,7 @@ void main() {
 
   float rScreen = length(uv);
 
-  float r_eh = uScale * 0.18;
+  float r_eh = pow(uScale / 1.5, 1.8) * 0.85;
   float r_ph = r_eh * 1.5;
 
   vec3 ro = vec3(uv.x, uv.y, -3.0);
@@ -198,7 +198,7 @@ void main() {
   vec3 col = (uHasScreenTexture > 0.5) ? desktopTex.rgb : vec3(0.0);
 
   // Scope desktop lensing alpha strictly to the black hole influence radius
-  float lensInfluenceRadius = r_eh * 6.0;
+  float lensInfluenceRadius = max(r_eh * 4.5, r_eh + 0.3);
   float lensAlpha = (uHasScreenTexture > 0.5) ? smoothstep(lensInfluenceRadius, r_eh * 0.5, rScreen) : 0.0;
   float alpha = lensAlpha;
 
@@ -260,8 +260,8 @@ varying float vAlpha;
 varying vec3  vColor;
 
 void main() {
-  float eh = uScale * 0.18;
-  float scaledR = aRadius * eh * 5.5;
+  float eh = pow(uScale / 1.5, 1.8) * 0.85;
+  float scaledR = (aRadius * 0.7 + 0.3) * eh * 3.5;
 
   float speed = 1.0 / pow(max(aRadius, 0.3), 0.75);
   float angle = aInitAngle + uTime * speed * 0.4 * (1.0 + uDriftSpeed * 5.0)
