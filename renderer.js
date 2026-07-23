@@ -77,11 +77,11 @@ vec4 sampleDisk(vec3 pos, float r_eh, float uTime, float uDriftSpeed) {
   float turb = fbm(dc * 2.5 + uTime * 0.3) + fbm(dc * 5.0 - uTime * 0.5) * 0.5;
   float spiral = sin(spin * 3.0 - r * 18.0 + uTime * 0.8) * 0.5 + 0.5;
   
-  // Concentric Saturn-like ring structure
-  float ringTexture = sin(r * 32.0 - uTime * 0.4) * 0.3 + 0.7;
-  float ringLanes   = smoothstep(0.15, 0.85, sin(r * 55.0 + uTime * 0.2) * 0.5 + 0.5) * 0.35 + 0.65;
+  // Concentric Saturn-like dynamic morphing ring structure
+  float ringWave    = sin(r * (28.0 + uScale * 14.0) - uTime * 0.6 + pos.x * 3.0) * 0.35 + 0.65;
+  float ringLanes   = smoothstep(0.12, 0.88, sin(r * 52.0 + spin * 2.0 - pos.z * 4.0) * 0.5 + 0.5) * 0.35 + 0.65;
 
-  float density = mix(spiral, turb, 0.4) * ringTexture * ringLanes * vFade;
+  float density = mix(spiral, turb, 0.4) * ringWave * ringLanes * vFade;
 
   float edgeFade = smoothstep(rIn, rIn * 1.12, r) * smoothstep(rOut, rOut * 0.85, r);
   density *= edgeFade;
@@ -132,13 +132,17 @@ void main() {
   vec3 ro = vec3(uv.x, uv.y, -3.0);
   vec3 rd = normalize(vec3(0.0, 0.0, 1.0));
 
-  float tiltAngle = 0.38;
-  float cosT = cos(tiltAngle);
-  float sinT = sin(tiltAngle);
+  // 🌌 Creative 3D dynamic pitch & roll matrix: ring tilts horizontally & vertically as hole roams across screen
+  float pitch = 0.38 + uCenter.y * 0.75 + cos(uTime * 0.5) * 0.20;
+  float roll  = uCenter.x * 0.85 + sin(uTime * 0.4) * 0.25;
+
+  float cP = cos(pitch), sP = sin(pitch);
+  float cR = cos(roll),  sR = sin(roll);
+
   mat3 tiltMat = mat3(
-    1.0,  0.0,   0.0,
-    0.0,  cosT, -sinT,
-    0.0,  sinT,  cosT
+     cR,       -sR * cP,   sR * sP,
+     sR,        cR * cP,  -cR * sP,
+     0.0,       sP,        cP
   );
 
   vec3 rayPos = ro;
