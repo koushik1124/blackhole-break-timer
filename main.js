@@ -175,12 +175,29 @@ app.whenReady().then(() => {
     setTimeout(() => { gracePeriodActive = false; }, 60000);
   });
 
+  function sendHudModeToggle(mode) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('toggle-hud-mode', mode);
+    }
+  }
+
   // System Tray Setup
   const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAA0VXRoAAAAi0lEQVQ4Eb3SMQoCIRhF4f/aQjDIIYxla+xSWY1WYzNYGcwihkUwiBgQfIMXXTz48XyMkI0xxhyXZRmUUkrrvpRSyBjjHGOsqyT1WmtYa0MIIWzLgN/3vV/Xta+1hohzsNb6uW3b8J+TJMmXZRnMzH1mRkSUrLWOiMg8z8M8z8N/ToiIknmehzRNw7U2y26H4E5/73gAAAAASUVORK5CYII=';
   tray = new Tray(nativeImage.createFromDataURL(iconBase64));
   tray.setToolTip('Black Hole Break Timer');
 
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'HUD Display Mode',
+      submenu: [
+        { label: 'Compact Pill (Default)', click: () => sendHudModeToggle('compact') },
+        { label: 'Full Diagnostic HUD', click: () => sendHudModeToggle('full') },
+        { label: 'Hidden Mode', click: () => sendHudModeToggle('hidden') },
+        { type: 'separator' },
+        { label: 'Cycle Mode (Ctrl+Shift+H)', click: () => sendHudModeToggle() }
+      ]
+    },
+    { type: 'separator' },
     { label: 'Set Scale: 0%', click: () => applyDebugScale(0) },
     { label: 'Set Scale: 25%', click: () => applyDebugScale(MAX_SCALE * 0.25) },
     { label: 'Set Scale: 50%', click: () => applyDebugScale(MAX_SCALE * 0.5) },
@@ -206,6 +223,7 @@ app.whenReady().then(() => {
     setTimeout(() => app.quit(), 300);
   });
 
+  globalShortcut.register('Ctrl+Shift+H', () => sendHudModeToggle());
   globalShortcut.register('Ctrl+Shift+0', () => applyDebugScale(0));
   globalShortcut.register('Ctrl+Shift+1', () => applyDebugScale(MAX_SCALE * 0.25));
   globalShortcut.register('Ctrl+Shift+2', () => applyDebugScale(MAX_SCALE * 0.50));

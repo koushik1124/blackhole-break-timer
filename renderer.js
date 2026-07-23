@@ -415,24 +415,29 @@ const MAX_FLOAT_RADIUS = 0.25;
 let currentCenter = new THREE.Vector2(0, 0);
 let currentDriftSpeed = 0;
 
+let hudMode = 'compact'; // Default to sleek compact pill mode
+
 const hud = document.createElement('div');
 hud.id = 'debug-hud';
 Object.assign(hud.style, {
   position: 'fixed',
   top: '18px',
   left: '18px',
-  padding: '12px 16px',
+  padding: '6px 14px',
   background: 'rgba(0, 0, 0, 0.65)',
   backdropFilter: 'blur(8px)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: '10px',
+  border: '1px solid rgba(167, 139, 250, 0.3)',
+  borderRadius: '20px',
   color: '#e0e0e0',
   fontFamily: 'monospace',
   fontSize: '12px',
-  lineHeight: '1.8',
+  lineHeight: '1.5',
   pointerEvents: 'none',
   zIndex: '9999',
-  minWidth: '220px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
   userSelect: 'none',
 });
 hud.innerHTML = buildHudHTML({ scale: 0, idleSec: 0, workSec: 0, debug: false });
@@ -452,9 +457,21 @@ function scalePct(s) {
 function buildHudHTML(d) {
   const safeData = d || { scale: 0, idleSec: 0, workSec: 0, debug: false };
   const pct = scalePct(safeData.scale);
-  const bar = buildBar(pct);
   const mode = safeData.debug ? '🚧 DEBUG' : '🟢 LIVE';
-  const block = safeData.scale >= 1.2 ? ' — <span style="color:#ff5555">🚫 MOUSE BLOCKED</span>' : '';
+  const block = safeData.scale >= 1.2 ? ' — <span style="color:#ff5555;font-weight:bold">🚫 BLOCKED</span>' : '';
+
+  if (hudMode === 'compact') {
+    return [
+      `<span style="color:#6ee7b7;font-weight:700">● LIVE</span>`,
+      `<span style="color:rgba(255,255,255,0.25)">│</span>`,
+      `Scale: <b style="color:#fbbf24">${pct}%</b>`,
+      `<span style="color:rgba(255,255,255,0.25)">│</span>`,
+      `Work: <b>${fmtTime(safeData.workSec || 0)}</b>${block}`,
+      `<span style="color:#6b7280;font-size:10px;margin-left:4px">(Ctrl+Shift+H)</span>`,
+    ].join(' ');
+  }
+
+  const bar = buildBar(pct);
   const pos = `(${currentCenter.x.toFixed(3)}, ${currentCenter.y.toFixed(3)})`;
   const drift = (currentDriftSpeed * 100).toFixed(1);
   return [
@@ -464,7 +481,7 @@ function buildHudHTML(d) {
     `Pos  : <b style="color:#93c5fd">${pos}</b>  Drift: ${drift}`,
     `Idle : <b>${fmtTime(safeData.idleSec || 0)}</b> / 3m00s`,
     `Work : <b>${fmtTime(safeData.workSec || 0)}</b> / 40m00s`,
-    `<span style="color:#6b7280;font-size:10px">Ctrl+Shift+0–4 test │ Or right-click System Tray</span>`,
+    `<span style="color:#6b7280;font-size:10px">Ctrl+Shift+H mode │ Ctrl+Shift+0–4 test</span>`,
   ].join('<br>');
 }
 
@@ -476,10 +493,52 @@ function buildBar(pct) {
   return `<span style="color:${color}">${'█'.repeat(filled)}${'░'.repeat(empty)}</span>`;
 }
 
+function updateHudDisplay() {
+  if (!lastPayload) return;
+
+  if (hudMode === 'hidden') {
+    hud.style.display = 'none';
+    return;
+  }
+
+  hud.style.display = hudMode === 'compact' ? 'flex' : 'block';
+
+  if (hudMode === 'compact') {
+    Object.assign(hud.style, {
+      padding: '6px 14px',
+      borderRadius: '20px',
+      minWidth: 'auto',
+      border: '1px solid rgba(167, 139, 250, 0.3)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
+    });
+  } else {
+    Object.assign(hud.style, {
+      padding: '12px 16px',
+      borderRadius: '10px',
+      minWidth: '220px',
+      border: '1px solid rgba(255,255,255,0.12)',
+      boxShadow: 'none',
+    });
+  }
+
+  hud.innerHTML = buildHudHTML(lastPayload);
+}
+
+if (window.bhApi && window.bhApi.onToggleHudMode) {
+  window.bhApi.onToggleHudMode((requestedMode) => {
+    if (requestedMode) {
+      hudMode = requestedMode;
+    } else {
+      hudMode = hudMode === 'compact' ? 'full' : hudMode === 'full' ? 'hidden' : 'compact';
+    }
+    updateHudDisplay();
+  });
+}
+
 window.bhApi.onScaleUpdate((data) => {
   targetScale = data.scale;
   lastPayload = data;
-  hud.innerHTML = buildHudHTML(data);
+  updateHudDisplay();
 
   if (data.triggerSupernova) {
     triggerSupernovaExplosion();

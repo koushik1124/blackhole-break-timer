@@ -42,4 +42,14 @@ contextBridge.exposeInMainWorld('bhApi', {
   requestGracePeriod: () => {
     ipcRenderer.send('trigger-grace-period');
   },
+
+  /** Register callback for HUD display mode toggles. */
+  onToggleHudMode: (callback) => {
+    ipcRenderer.removeAllListeners('toggle-hud-mode');
+    const listener = (_event, mode) => callback(mode);
+    ipcRenderer.on('toggle-hud-mode', listener);
+    return () => {
+      ipcRenderer.removeListener('toggle-hud-mode', listener);
+    };
+  },
 });
