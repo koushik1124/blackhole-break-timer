@@ -294,9 +294,15 @@ Modify these values and restart the app. No rebuild required for development mod
 
 ---
 
-## 📄 License
+## 📄 License & Free Access
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is **100% Free & Open Source** licensed under the **[MIT License](LICENSE)**.
+
+- 🟢 **Free for Everyone**: Completely free to download, use, share, and distribute.
+- 🟢 **No Hidden Fees or Subscriptions**: Forever free with zero restrictions.
+- 🟢 **Open Source**: Free to inspect, modify, and build upon.
+
+See the full [LICENSE](LICENSE) file for details.
 
 ---
 
