@@ -58,7 +58,7 @@ float fbm(vec2 p) {
 // ── 3D Disk Density & Color Function ────────────────────────
 vec4 sampleDisk(vec3 pos, float r_eh, float uTime, float uDriftSpeed) {
   float rIn  = r_eh * 1.25; // ISCO tight to event horizon
-  float rOut = r_eh * 6.0;
+  float rOut = r_eh * 2.2;
   float r    = length(pos.xz);
   
   if (r < rIn || r > rOut) return vec4(0.0);
@@ -126,7 +126,7 @@ void main() {
   float rScreen = length(uv);
 
   float progress = clamp(uScale / 1.5, 0.0, 1.0);
-  float r_eh = pow(progress, 1.5) * 0.88;
+  float r_eh = pow(progress, 2.2) * 0.65 + progress * 0.04;
   float r_ph = r_eh * 1.5;
 
   vec3 ro = vec3(uv.x, uv.y, -3.0);
@@ -199,7 +199,7 @@ void main() {
   vec3 col = (uHasScreenTexture > 0.5) ? desktopTex.rgb : vec3(0.0);
 
   // Scope desktop lensing alpha strictly to the black hole influence radius
-  float lensInfluenceRadius = max(r_eh * 4.5, r_eh + 0.3);
+  float lensInfluenceRadius = r_eh * 2.5;
   float lensAlpha = (uHasScreenTexture > 0.5) ? smoothstep(lensInfluenceRadius, r_eh * 0.5, rScreen) : 0.0;
   float alpha = lensAlpha;
 
@@ -262,8 +262,8 @@ varying vec3  vColor;
 
 void main() {
   float progress = clamp(uScale / 1.5, 0.0, 1.0);
-  float eh = pow(progress, 1.5) * 0.88;
-  float scaledR = (aRadius * 0.7 + 0.3) * eh * 3.5;
+  float eh = pow(progress, 2.2) * 0.65 + progress * 0.04;
+  float scaledR = (aRadius * 0.7 + 0.3) * eh * 2.2;
 
   float speed = 1.0 / pow(max(aRadius, 0.3), 0.75);
   float angle = aInitAngle + uTime * speed * 0.4 * (1.0 + uDriftSpeed * 5.0)
